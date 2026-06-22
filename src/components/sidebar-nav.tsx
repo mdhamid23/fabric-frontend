@@ -43,24 +43,24 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   {
-    title: "Supervisor",
+    title: "Verification",
     icon: <UserCog className="h-4 w-4" />,
     roles: [USER_ROLES.SUPERVISOR, USER_ROLES.ADMIN, USER_ROLES.THESIS_ADMIN],
     submenu: [
       {
-        title: "Dashboard",
+        title: "Overview",
         href: "/supervisor/dashboard",
         icon: <LayoutDashboard className="h-3 w-3" />,
         roles: [USER_ROLES.SUPERVISOR],
       },
       {
-        title: "Groups",
+        title: "Certificates",
         href: "/supervisor/groups",
         icon: <Group className="h-3 w-3" />,
         roles: [USER_ROLES.SUPERVISOR],
       },
       {
-        title: "Documents",
+        title: "Registry",
         href: "/supervisor/documents",
         icon: <FileText className="h-3 w-3" />,
         roles: [USER_ROLES.SUPERVISOR],
@@ -68,7 +68,7 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
-    title: "Admin",
+    title: "Board Office",
     icon: <Shield className="h-4 w-4" />,
     roles: [
       USER_ROLES.ADMIN,
@@ -83,7 +83,7 @@ const menuItems: MenuItem[] = [
       //   roles: [USER_ROLES.ADMIN, USER_ROLES.THESIS_ADMIN],
       // },
       {
-        title: "Semester",
+        title: "Issuance Periods",
         href: "/admin/semester",
         icon: <CalendarDays className="h-3 w-3" />,
         roles: [
@@ -93,7 +93,7 @@ const menuItems: MenuItem[] = [
         ],
       },
       {
-        title: "Groups",
+        title: "Verification Queue",
         href: "/admin/thesis-groups",
         icon: <Group className="h-3 w-3" />,
         roles: [
@@ -103,7 +103,7 @@ const menuItems: MenuItem[] = [
         ],
       },
       {
-        title: "Documents",
+        title: "Records",
         href: "/admin/documents",
         icon: <DockIcon className="h-3 w-3" />,
         roles: [
@@ -113,7 +113,7 @@ const menuItems: MenuItem[] = [
         ],
       },
       {
-        title: "Approval Requests",
+        title: "Validation Requests",
         href: "/admin/approval-requests",
         icon: <AlertTriangle className="h-3 w-3" />,
         roles: [USER_ROLES.ADMIN, USER_ROLES.THESIS_ADMIN],
@@ -172,7 +172,7 @@ export function SidebarNav({
         return pathname === sub.href || pathname?.startsWith(`${sub.href}/`);
       });
 
-      acc[item.title] = Boolean(isActiveMenu) || item.title === "Supervisor";
+      acc[item.title] = Boolean(isActiveMenu) || item.title === "Verification";
       return acc;
     }, {});
   }, [allowedMenuItems, pathname]);

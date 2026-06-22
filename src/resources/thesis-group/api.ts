@@ -1,7 +1,12 @@
 import { API_SERVICE } from "@/config/axios-config";
-import { ThesisGroup as AdminThesisGroup } from "@/components/Admin/types";
-import { ThesisStatus } from "@/components/Supervisor/types";
+import { AdminThesisGroup } from "@/resources/admin/api";
 import { AxiosError } from "axios";
+
+export type ThesisStatus =
+  | "submitted"
+  | "action_needed"
+  | "resubmitted"
+  | "completed";
 
 interface SupervisorGroupStudent {
   studentId: string;
@@ -303,43 +308,45 @@ const toAdminStatus = (group: AdminThesisGroupResponse): ThesisGroupStatus => {
   return "submitted";
 };
 
-const toAdminUiGroup = (group: AdminThesisGroupResponse): ThesisGroup => {
+const toAdminUiGroup = (group: AdminThesisGroupResponse): AdminThesisGroup => {
   const status = toAdminStatus(group);
   const registrationCompleted =
     group.registrationCompleted === true || status === "completed";
 
   return {
     id: group.id,
-
-    classId: group.classId ?? "",
-
-    groupNo: group.supervisorGroup
-      ? `[BSCS][Thesis][G${group.globalGroupSerial ?? "-"}]`
-      : `Thesis [BSCS][G${group.globalGroupSerial ?? "-"}]`,
-
+    semesterId: group.semesterId,
+    classId: group.classId ?? undefined,
+    globalGroupSerial: group.globalGroupSerial ?? undefined,
+    supervisorGroup: group.supervisorGroup ?? undefined,
+    externalId: group.externalId ?? undefined,
+    externalName: group.externalName ?? undefined,
+    thesisManagementTeamRemark: group.thesisManagementTeamRemark ?? undefined,
+    supervisorRemark: group.supervisorRemark ?? undefined,
     supervisorId: group.supervisorId,
     supervisorName: group.supervisorName,
-
-    extId: group.externalId ?? "",
-
+    supervisorEmail: group.supervisorEmail,
+    proposedTitle: group.proposedTitle,
+    thesisDomain: group.thesisDomain,
+    shortDescription: group.shortDescription,
+    numberOfStudents: group.numberOfStudents,
+    acceptTerms: group.acceptTerms,
     students: (group.students ?? []).map((student) => ({
       id: student.studentId,
+      studentId: student.studentId,
       name: student.name,
+      cgpa: "",
+      primaryEmail: "",
+      secondaryEmail: undefined,
+      phoneNo: "",
+      creditCompleted: "",
+      creditTakeWithThesis: undefined,
+      researchMethodologyCompleted: "no",
     })),
-
-    status,
-
-    registrationCompleted,
-
-    registrationStatus: registrationCompleted ? "completed" : "pending",
-
-    remark: group.supervisorRemark ?? "",
-
-    thesisMgmtRemark: group.thesisManagementTeamRemark ?? "",
-
-    isEdited: false,
-
-    serial: group.globalGroupSerial ?? "-",
+    documents: [],
+    createdAt: undefined,
+    updatedAt: undefined,
+    obeMarks: undefined,
   };
 };
 

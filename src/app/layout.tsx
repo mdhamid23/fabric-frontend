@@ -17,8 +17,9 @@ const hedvig = Hedvig_Letters_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "AIUB FST Platform",
-  description: "AIUB Faculty of Science and Technology Next-Gen Platform",
+  title: "Dhaka Education Board Certificate Verification",
+  description:
+    "Verify academic certificates issued by the Dhaka Education Board.",
 };
 
 export default function RootLayout({
