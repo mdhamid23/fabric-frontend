@@ -1,0 +1,17 @@
+# version: "3.8"
+
+services:
+  obe-app-frontend:
+    image: obe-app-frontend-img
+    build: .
+    container_name: obe-app-frontend
+    restart: always
+    tty: true
+    # ports:
+    #   - 3008:3000
+    networks:
+      - app-network
+networks:
+  app-network:
+    driver: bridge
+    external: true

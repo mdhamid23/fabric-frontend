@@ -1,0 +1,63 @@
+{
+  "name": "aiub-fst-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@headlessui/tailwindcss": "^0.2.2",
+    "@hookform/resolvers": "^5.2.2",
+    "@radix-ui/react-slot": "^1.2.4",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tanstack/react-query": "^5.96.0",
+    "axios": "^1.14.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "dayjs": "^1.11.20",
+    "framer-motion": "^12.38.0",
+    "froala-editor": "^5.0.1",
+    "geist": "^1.7.0",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^1.7.0",
+    "moment": "^2.30.1",
+    "next": "16.2.2",
+    "next-themes": "^0.4.6",
+    "radix-ui": "^1.4.3",
+    "react": "^19.2.4",
+    "react-countup": "^6.5.3",
+    "react-dom": "^19.2.4",
+    "react-error-boundary": "^6.1.1",
+    "react-hook-form": "^7.72.0",
+    "react-hot-toast": "^2.6.0",
+    "recharts": "^3.8.1",
+    "sass": "^1.98.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwind-scrollbar": "^3.1.0",
+    "tailwindcss": "3.4.17",
+    "tailwindcss-animate": "^1.0.7",
+    "typed.js": "^3.0.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^10.1.0",
+    "eslint-config-next": "16.2.2",
+    "postcss": "^8.5.1",
+    "typescript": "^6.0.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "glob": ">=10.5.0",
+      "js-yaml": ">=4.1.1"
+    }
+  }
+}
