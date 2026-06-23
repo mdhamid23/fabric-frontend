@@ -1,10 +1,7 @@
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 const BACKEND_API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001";
-
-const ACCESS_TOKEN_COOKIE = "auth_server_access_token";
 
 type RouteContext = {
   params: Promise<{
@@ -13,8 +10,13 @@ type RouteContext = {
 };
 
 async function proxyRequest(request: NextRequest, context: RouteContext) {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
+  // Get token from Authorization header only
+  const authHeader = request.headers.get("authorization");
+  let accessToken: string | null = null;
+
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    accessToken = authHeader.substring(7); // Remove "Bearer " prefix
+  }
 
   const { path } = await context.params;
 
@@ -34,22 +36,26 @@ async function proxyRequest(request: NextRequest, context: RouteContext) {
       : null,
   });
 
-  if (!accessToken) {
-    return NextResponse.json(
-      {
-        message: "Unauthorized: missing access token",
-      },
-      { status: 401 },
-    );
-  }
+  // Uncomment this if you want to require authentication
+  // if (!accessToken) {
+  //   return NextResponse.json(
+  //     {
+  //       message: "Unauthorized: missing access token",
+  //     },
+  //     { status: 401 },
+  //   );
+  // }
 
   const headers = new Headers(request.headers);
 
-  headers.set("Authorization", `Bearer ${accessToken}`);
+  // Forward the Authorization header to the backend
+  if (accessToken) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
+  }
   headers.set("Accept", "application/json");
 
+  // Remove headers that might cause issues
   headers.delete("host");
-  headers.delete("cookie");
   headers.delete("content-length");
 
   const method = request.method.toUpperCase();
@@ -75,6 +81,7 @@ async function proxyRequest(request: NextRequest, context: RouteContext) {
 
   const responseHeaders = new Headers(backendResponse.headers);
 
+  // Clean up response headers
   responseHeaders.delete("content-encoding");
   responseHeaders.delete("content-length");
   responseHeaders.delete("transfer-encoding");

@@ -81,13 +81,13 @@ export default function ClientLayoutWrapper({
 
   //     initAuth();
   //   }, [isPublicShellRoute, pathname, router]);
-  if (!isPublicShellRoute && !isAuthReady) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-[#040404]">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-black dark:border-gray-700 dark:border-t-white" />
-      </div>
-    );
-  }
+  //   if (!isPublicShellRoute && !isAuthReady) {
+  //     return (
+  //       <div className="flex min-h-screen items-center justify-center bg-white dark:bg-[#040404]">
+  //         <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-black dark:border-gray-700 dark:border-t-white" />
+  //       </div>
+  //     );
+  //   }
 
   // Public routes (landing page, auth pages)
   if (isPublicShellRoute) {

@@ -15,16 +15,25 @@ import { useState } from "react";
 import {
   ArrowRight,
   BadgeCheck,
-  Camera,
   CheckCircle2,
   FileScan,
   QrCode,
   ShieldCheck,
-  Upload,
   UserRound,
+  XCircle,
+  Loader2,
+  Award,
+  Calendar,
+  Building2,
+  GraduationCap,
+  School,
+  Hash,
+  User,
 } from "lucide-react";
 import QRCode from "qrcode";
 import { useEffect } from "react";
+import { VerifyCertificateResponse } from "@/resources/certificate/api";
+import { verifyCertificate } from "@/resources/certificate/service";
 
 type VerifyMode = "qr" | "manual";
 
@@ -36,6 +45,17 @@ export default function VerifyPage() {
   const [qrToken, setQrToken] = useState(DEFAULT_QR_TOKEN);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [qrError, setQrError] = useState<string | null>(null);
+
+  // Manual verification states
+  const [rollNumber, setRollNumber] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState("");
+  const [passingYear, setPassingYear] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationResult, setVerificationResult] =
+    useState<VerifyCertificateResponse | null>(null);
+  const [verificationError, setVerificationError] = useState<string | null>(
+    null,
+  );
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -92,6 +112,62 @@ export default function VerifyPage() {
       isMounted = false;
     };
   }, [qrToken]);
+
+  const handleManualVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Reset previous results
+    setVerificationResult(null);
+    setVerificationError(null);
+
+    // Validate inputs
+    if (
+      !rollNumber.trim() ||
+      !registrationNumber.trim() ||
+      !passingYear.trim()
+    ) {
+      setVerificationError("Please fill in all required fields.");
+      return;
+    }
+
+    setIsVerifying(true);
+
+    try {
+      const result = await verifyCertificate({
+        rollNumber: rollNumber.trim(),
+        registrationNumber: registrationNumber.trim(),
+        passingYear: passingYear.trim(),
+      });
+
+      setVerificationResult(result);
+
+      // Check if the result is AUTHENTIC
+      if (result.result !== "AUTHENTIC") {
+        setVerificationError(
+          result.message || "Certificate not found or invalid.",
+        );
+      }
+    } catch (error) {
+      setVerificationError(
+        error instanceof Error
+          ? error.message
+          : "Verification failed. Please try again.",
+      );
+      setVerificationResult(null);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const resetVerification = () => {
+    setVerificationResult(null);
+    setVerificationError(null);
+    setRollNumber("");
+    setRegistrationNumber("");
+    setPassingYear("");
+  };
+
+  const isAuthentic = verificationResult?.result === "AUTHENTIC";
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#f5f1e8] text-slate-950 dark:bg-[#09090b] dark:text-white">
@@ -181,7 +257,10 @@ export default function VerifyPage() {
                 <div className="grid grid-cols-2 gap-3 rounded-2xl border border-slate-950/10 bg-slate-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
                   <button
                     type="button"
-                    onClick={() => setMode("qr")}
+                    onClick={() => {
+                      setMode("qr");
+                      resetVerification();
+                    }}
                     className={`flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-all ${mode === "qr" ? "border border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950" : "text-slate-600 hover:text-slate-950 dark:text-white/55 dark:hover:text-white"}`}
                   >
                     <QrCode className="h-4 w-4" />
@@ -189,7 +268,10 @@ export default function VerifyPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setMode("manual")}
+                    onClick={() => {
+                      setMode("manual");
+                      resetVerification();
+                    }}
                     className={`flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-all ${mode === "manual" ? "border border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950" : "text-slate-600 hover:text-slate-950 dark:text-white/55 dark:hover:text-white"}`}
                   >
                     <UserRound className="h-4 w-4" />
@@ -226,115 +308,222 @@ export default function VerifyPage() {
                           )}
                         </div>
                       </div>
-
-                      {/* <div className="space-y-4">
-                        <div className="rounded-2xl border border-slate-950/10 bg-slate-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03]">
-                          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-white/45">
-                            Backend token
-                          </p>
-                          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-white/60">
-                            Paste the token from your backend table here. The QR
-                            updates immediately.
-                          </p>
-                          <textarea
-                            value={qrToken}
-                            onChange={(event) => setQrToken(event.target.value)}
-                            rows={10}
-                            spellCheck={false}
-                            className="mt-4 w-full rounded-2xl border border-slate-950/10 bg-white p-4 font-mono text-xs leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-950 focus:ring-0 dark:border-white/10 dark:bg-black/20 dark:text-white dark:placeholder:text-white/25"
-                          />
-                        </div>
-
-                        <div className="rounded-2xl border border-slate-950/10 bg-slate-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03]">
-                          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-white/45">
-                            Token details
-                          </p>
-                          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-white/60">
-                            In your example, the token payload contains the
-                            certificate ID and the purpose flag. That makes it a
-                            good candidate for a QR-backed lookup.
-                          </p>
-                        </div>
-
-                        <div className="flex flex-wrap gap-3">
-                          <Button
-                            type="button"
-                            onClick={() => setQrToken(DEFAULT_QR_TOKEN)}
-                            className="h-11 border border-slate-950 bg-slate-950 px-5 text-white dark:border-white dark:bg-white dark:text-slate-950"
-                          >
-                            Reset to example token
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="h-11 border-slate-950/15 px-5 dark:border-white/15 dark:bg-white/[0.03]"
-                          >
-                            <Upload className="h-4 w-4" />
-                            Upload QR image
-                          </Button>
-                        </div>
-                      </div> */}
                     </div>
                   </div>
                 ) : (
-                  <form className="space-y-5">
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="rollNumber"
-                        className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-white/45"
-                      >
-                        Roll number
-                      </label>
-                      <Input
-                        id="rollNumber"
-                        name="rollNumber"
-                        type="text"
-                        placeholder="123456"
-                        className="h-12 border-slate-950/10 bg-white text-base shadow-[0_12px_24px_rgba(15,23,42,0.04)] placeholder:text-slate-400 dark:border-white/10 dark:bg-black/20 dark:placeholder:text-white/25"
-                      />
-                    </div>
+                  <>
+                    <form onSubmit={handleManualVerify} className="space-y-5">
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="rollNumber"
+                          className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-white/45"
+                        >
+                          Roll number *
+                        </label>
+                        <Input
+                          id="rollNumber"
+                          name="rollNumber"
+                          type="text"
+                          placeholder="123456"
+                          value={rollNumber}
+                          onChange={(e) => setRollNumber(e.target.value)}
+                          disabled={isVerifying}
+                          className="h-12 border-slate-950/10 bg-white text-base shadow-[0_12px_24px_rgba(15,23,42,0.04)] placeholder:text-slate-400 dark:border-white/10 dark:bg-black/20 dark:placeholder:text-white/25"
+                          required
+                        />
+                      </div>
 
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="registrationNumber"
-                        className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-white/45"
-                      >
-                        Registration number
-                      </label>
-                      <Input
-                        id="registrationNumber"
-                        name="registrationNumber"
-                        type="text"
-                        placeholder="REG-2024-002"
-                        className="h-12 border-slate-950/10 bg-white text-base shadow-[0_12px_24px_rgba(15,23,42,0.04)] placeholder:text-slate-400 dark:border-white/10 dark:bg-black/20 dark:placeholder:text-white/25"
-                      />
-                    </div>
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="registrationNumber"
+                          className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-white/45"
+                        >
+                          Registration number *
+                        </label>
+                        <Input
+                          id="registrationNumber"
+                          name="registrationNumber"
+                          type="text"
+                          placeholder="REG-2024-002"
+                          value={registrationNumber}
+                          onChange={(e) =>
+                            setRegistrationNumber(e.target.value)
+                          }
+                          disabled={isVerifying}
+                          className="h-12 border-slate-950/10 bg-white text-base shadow-[0_12px_24px_rgba(15,23,42,0.04)] placeholder:text-slate-400 dark:border-white/10 dark:bg-black/20 dark:placeholder:text-white/25"
+                          required
+                        />
+                      </div>
 
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="passingYear"
-                        className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-white/45"
-                      >
-                        Passing year
-                      </label>
-                      <Input
-                        id="passingYear"
-                        name="passingYear"
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="2024"
-                        className="h-12 border-slate-950/10 bg-white text-base shadow-[0_12px_24px_rgba(15,23,42,0.04)] placeholder:text-slate-400 dark:border-white/10 dark:bg-black/20 dark:placeholder:text-white/25"
-                      />
-                    </div>
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="passingYear"
+                          className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-white/45"
+                        >
+                          Passing year *
+                        </label>
+                        <Input
+                          id="passingYear"
+                          name="passingYear"
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="2024"
+                          value={passingYear}
+                          onChange={(e) => setPassingYear(e.target.value)}
+                          disabled={isVerifying}
+                          className="h-12 border-slate-950/10 bg-white text-base shadow-[0_12px_24px_rgba(15,23,42,0.04)] placeholder:text-slate-400 dark:border-white/10 dark:bg-black/20 dark:placeholder:text-white/25"
+                          required
+                        />
+                      </div>
 
-                    <Button
-                      type="submit"
-                      className="h-12 w-full justify-between border border-slate-950 bg-slate-950 px-5 text-sm text-white shadow-[0_18px_40px_rgba(15,23,42,0.18)] transition-transform hover:-translate-y-0.5 hover:bg-slate-900 dark:border-white dark:bg-white dark:text-slate-950 dark:hover:bg-white/90"
-                    >
-                      <span>Verify manually</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </form>
+                      <Button
+                        type="submit"
+                        disabled={isVerifying}
+                        className="h-12 w-full justify-between border border-slate-950 bg-slate-950 px-5 text-sm text-white shadow-[0_18px_40px_rgba(15,23,42,0.18)] transition-transform hover:-translate-y-0.5 hover:bg-slate-900 disabled:opacity-70 disabled:hover:translate-y-0 dark:border-white dark:bg-white dark:text-slate-950 dark:hover:bg-white/90"
+                      >
+                        <span>
+                          {isVerifying ? (
+                            <span className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Verifying...
+                            </span>
+                          ) : (
+                            "Verify manually"
+                          )}
+                        </span>
+                        {!isVerifying && <ArrowRight className="h-4 w-4" />}
+                      </Button>
+                    </form>
+
+                    {/* Verification Result */}
+                    {verificationResult && isAuthentic && (
+                      <div className="mt-4 rounded-2xl border border-green-500/20 bg-green-50 p-4 dark:bg-green-950/20">
+                        <div className="flex items-start gap-3">
+                          <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-green-700 dark:text-green-300">
+                              ✅ Certificate Verified Successfully
+                            </h4>
+                            <p className="text-sm text-slate-600 dark:text-white/60 mt-1">
+                              {verificationResult.message ||
+                                "Certificate record is valid and authenticated by the board."}
+                            </p>
+
+                            {verificationResult.certificate && (
+                              <div className="mt-4 space-y-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div className="space-y-1">
+                                    <p className="text-xs text-slate-500 dark:text-white/40">
+                                      Student Name
+                                    </p>
+                                    <p className="flex items-center gap-2 text-sm font-medium">
+                                      <User className="h-3 w-3 text-slate-500 dark:text-white/40" />
+                                      {
+                                        verificationResult.certificate
+                                          .studentName
+                                      }
+                                    </p>
+                                  </div>
+                                  {verificationResult.certificate.institute && (
+                                    <div className="space-y-1">
+                                      <p className="text-xs text-slate-500 dark:text-white/40">
+                                        Institute
+                                      </p>
+                                      <p className="flex items-center gap-2 text-sm font-medium">
+                                        <Building2 className="h-3 w-3 text-slate-500 dark:text-white/40" />
+                                        {
+                                          verificationResult.certificate
+                                            .institute
+                                        }
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-3">
+                                  <div className="space-y-1">
+                                    <p className="text-xs text-slate-500 dark:text-white/40">
+                                      Exam
+                                    </p>
+                                    <p className="flex items-center gap-2 text-sm font-medium">
+                                      <GraduationCap className="h-3 w-3 text-slate-500 dark:text-white/40" />
+                                      {verificationResult.certificate.examName}
+                                    </p>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p className="text-xs text-slate-500 dark:text-white/40">
+                                      Result
+                                    </p>
+                                    <p className="flex items-center gap-2 text-sm font-medium">
+                                      <Award className="h-3 w-3 text-slate-500 dark:text-white/40" />
+                                      {verificationResult.certificate.result}
+                                    </p>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p className="text-xs text-slate-500 dark:text-white/40">
+                                      Year
+                                    </p>
+                                    <p className="flex items-center gap-2 text-sm font-medium">
+                                      <Calendar className="h-3 w-3 text-slate-500 dark:text-white/40" />
+                                      {
+                                        verificationResult.certificate
+                                          .passingYear
+                                      }
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <p className="text-xs text-slate-500 dark:text-white/40">
+                                    Board
+                                  </p>
+                                  <p className="flex items-center gap-2 text-sm font-medium">
+                                    <School className="h-3 w-3 text-slate-500 dark:text-white/40" />
+                                    {verificationResult.certificate.board}
+                                  </p>
+                                </div>
+
+                                {verificationResult.certificate.rollNumber && (
+                                  <div className="space-y-1">
+                                    <p className="text-xs text-slate-500 dark:text-white/40">
+                                      Roll Number
+                                    </p>
+                                    <p className="flex items-center gap-2 text-sm font-medium">
+                                      <Hash className="h-3 w-3 text-slate-500 dark:text-white/40" />
+                                      {
+                                        verificationResult.certificate
+                                          .rollNumber
+                                      }
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Verification Error */}
+                    {(verificationError ||
+                      (verificationResult && !isAuthentic)) && (
+                      <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-50 p-4 dark:bg-red-950/20">
+                        <div className="flex items-start gap-3">
+                          <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <h4 className="font-semibold text-red-700 dark:text-red-300">
+                              ❌ Verification Failed
+                            </h4>
+                            <p className="text-sm text-slate-600 dark:text-white/60 mt-1">
+                              {verificationError ||
+                                verificationResult?.message ||
+                                "Certificate could not be verified."}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 <div className="flex items-center justify-between gap-4 text-sm text-slate-600 dark:text-white/55">

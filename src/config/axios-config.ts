@@ -10,60 +10,37 @@ type RetryableAxiosRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
 };
 
-type AuthCookieResponse = {
-  authenticated: boolean;
-  user?: unknown;
+// Helper to get token from localStorage
+const getTokenFromStorage = (): string | null => {
+  try {
+    if (typeof window === "undefined") return null;
+    const token = localStorage.getItem("accessToken");
+    return token || null;
+  } catch (error) {
+    console.error("Error reading token from localStorage:", error);
+    return null;
+  }
 };
 
 export const API_SERVICE = axios.create({
   baseURL: "/api/backend-proxy",
-  withCredentials: true,
 });
 
-export const AUTH_SERVICE = axios.create({
-  baseURL: "/auth-api",
-  withCredentials: true,
-});
+// Request interceptor for API_SERVICE to add token
+API_SERVICE.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = getTokenFromStorage();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
 
-let refreshSessionPromise: Promise<boolean> | null = null;
-
-async function refreshCookieSession(): Promise<boolean> {
-  if (!refreshSessionPromise) {
-    refreshSessionPromise = fetch("/api/auth/cookie", {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          return false;
-        }
-
-        const session = (await response.json()) as AuthCookieResponse;
-
-        return Boolean(session.authenticated);
-      })
-      .catch(() => false)
-      .finally(() => {
-        refreshSessionPromise = null;
-      });
-  }
-
-  return refreshSessionPromise;
-}
-
-function shouldRetryRequest(error: AxiosError): boolean {
-  const originalRequest = error.config as
-    | RetryableAxiosRequestConfig
-    | undefined;
-
-  if (!originalRequest) return false;
-  if (originalRequest._retry) return false;
-  if (error.response?.status !== 401) return false;
-
-  return true;
-}
-
+// Response interceptor for handling 401 errors
 API_SERVICE.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
@@ -71,32 +48,58 @@ API_SERVICE.interceptors.response.use(
       | RetryableAxiosRequestConfig
       | undefined;
 
-    if (!shouldRetryRequest(error) || !originalRequest) {
+    if (!originalRequest) {
       return Promise.reject(error);
     }
 
-    originalRequest._retry = true;
+    // If it's a 401 and we haven't retried yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
 
-    const refreshed = await refreshCookieSession();
+      // Clear invalid token
+      try {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+      } catch (e) {
+        // Ignore
+      }
 
-    if (!refreshed) {
+      // Redirect to login
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+
       return Promise.reject(error);
     }
 
-    return API_SERVICE.request(originalRequest);
+    return Promise.reject(error);
   },
 );
 
+// Helper function for making API requests
 export const getAxios = <T extends z.ZodTypeAny>(
   info: iAxios<any | FormData, any>,
   responseSchema: T | null = null,
 ): Promise<z.infer<T>> => {
   const { url, params = {}, data = {}, method = "get" } = info;
 
-  const headers: Record<string, string> = {};
+  let dataType = "application/json";
 
-  if (!(data instanceof FormData)) {
-    headers["Content-Type"] = "application/json;charset=UTF-8";
+  if (data instanceof FormData) {
+    dataType = "multipart/form-data";
+  }
+
+  const headers: Record<string, string> = {
+    "Content-Type":
+      dataType === "multipart/form-data"
+        ? "multipart/form-data"
+        : "application/json;charset=UTF-8",
+  };
+
+  // Add token if available
+  const token = getTokenFromStorage();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
   }
 
   return API_SERVICE.request({

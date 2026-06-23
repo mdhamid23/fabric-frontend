@@ -62,13 +62,7 @@ const nextConfig = {
             {
                 source: "/backend-api/:path*",
                 destination: `${backendApiBaseUrl}/:path*`,
-            },
-
-            // Optional: auth server proxy if you need it from browser.
-            {
-                source: "/auth-api/:path*",
-                destination: `${authServerBaseUrl}/:path*`,
-            },
+            }
         ];
     },
 };
