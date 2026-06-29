@@ -352,3 +352,45 @@ export const deleteCertificateApi = async (id: string): Promise<void> => {
     throw toAppError(error);
   }
 };
+
+// In your service file
+// resources/certificate/service.ts
+
+export const createBulkCertificates = async (
+  certificates: CertificatePayload[],
+) => {
+  try {
+    // getAxios already returns the parsed response data
+    const response: any = await getAxios({
+      url: "/certificates/bulk",
+      method: "POST",
+      data: certificates,
+    });
+
+    // The response from getAxios is already the parsed data
+    console.log("Bulk create response:", response);
+
+    // Check if there was an error in the response
+    if (response.status === "error" || response.message) {
+      throw new Error(response.message || "Failed to create certificates");
+    }
+
+    return response;
+  } catch (error: any) {
+    console.error("Error creating bulk certificates:", error);
+
+    // Handle axios error response
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      const errorData = error.response.data;
+      throw new Error(errorData.message || "Failed to create certificates");
+    } else if (error.request) {
+      // The request was made but no response was received
+      throw new Error("No response from server. Please try again.");
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      throw new Error(error.message || "Failed to create certificates");
+    }
+  }
+};

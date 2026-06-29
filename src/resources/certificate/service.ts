@@ -17,6 +17,7 @@ import {
   VerifyByTokenResponse,
   RevokeCertificatePayload,
   RevokeCertificateResponse,
+  createBulkCertificates,
 } from "./api";
 
 export type {
@@ -91,3 +92,9 @@ export const getCertId = (certificate: Certificate) =>
  * Helper to normalize certificate data
  */
 export const normalizeCert = (cert: any) => normalizeCertificate(cert);
+
+export const createBulkCertificatess = async (
+  payloads: CertificatePayload[],
+) => {
+  return await createBulkCertificates(payloads);
+};
