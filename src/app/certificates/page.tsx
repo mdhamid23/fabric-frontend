@@ -200,13 +200,22 @@ export default function CertificatesPage() {
                 Manage and track all issued certificates
               </p>
             </div>
-            <Button
-              onClick={() => router.push("/certificates/create")}
-              className="h-12 border border-slate-950 bg-slate-950 px-5 text-sm text-white shadow-[0_18px_40px_rgba(15,23,42,0.18)] transition-transform hover:-translate-y-0.5 hover:bg-slate-900 dark:border-white dark:bg-white dark:text-slate-950 dark:hover:bg-white/90"
-            >
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Create Certificate
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                onClick={() => router.push("/certificates/create")}
+                className="h-12 border border-slate-950 bg-slate-950 px-5 text-sm text-white shadow-[0_18px_40px_rgba(15,23,42,0.18)] transition-transform hover:-translate-y-0.5 hover:bg-slate-900 dark:border-white dark:bg-white dark:text-slate-950 dark:hover:bg-white/90"
+              >
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Create
+              </Button>
+              <Button
+                onClick={() => router.push("/certificates/create/bulk")}
+                className="h-12 border border-slate-950 bg-slate-950 px-5 text-sm text-white shadow-[0_18px_40px_rgba(15,23,42,0.18)] transition-transform hover:-translate-y-0.5 hover:bg-slate-900 dark:border-white dark:bg-white dark:text-slate-950 dark:hover:bg-white/90"
+              >
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Bulk Create
+              </Button>
+            </div>
           </motion.div>
 
           {/* Filters */}
